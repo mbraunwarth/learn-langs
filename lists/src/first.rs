@@ -5,30 +5,26 @@ pub struct List {
 }
 
 impl List {
-    // static method on the List type 
-    
-    // `new()` function - idiomatic for data type constructors in Rust
-    //                    returning an 'idle' object of defined type 
     pub fn new() -> Self {
         List { head: Link::Empty }
     }
 
-    // non-static methods operating on an object (`self`) of the List type
-    
     pub fn push(&mut self, elem: i32) {
-        let new_node = Box::new(Node { 
+        let new_node = Box::new(Node {
             elem: elem,
-            // TODO here am i
-            next: mem::replace(&self, List::new()),
+            next: mem::replace(&mut self.head, Link::Empty),
         });
 
-        self.head = Link::More(new_node);
+        self.head = Link::More(new_node)
     }
 
-    pub fn pop(self) -> i32 {
-        match self.head {
-            Link::Empty => 0,
-            Link::More(node) => node.elem,
+    pub fn pop(&mut self) -> Option<i32> {
+        match mem::replace(&mut self.head, Link::Empty) {
+            Link::Empty => None,
+            Link::More(node) => {
+                self.head = node.next;
+                Some(node.elem)
+            },
         }
     }
 }
@@ -40,5 +36,24 @@ enum Link {
 
 struct Node {
     elem: i32,
-    next: List,
+    next: Link,
+}
+
+#[cfg(test)]
+mod test {
+    use super::List;
+
+    #[test]
+    fn pop_on_empty_list() {
+        let mut list = List::new();
+        assert_eq!(list.pop(), None);
+    }
+
+    #[test]
+    fn pop_on_filled_list() {
+        let mut list = List::new();
+        list.push(1);
+        assert_eq!(list.pop(), Some(1));
+        assert_eq!(list.pop(), None);
+    }
 }
