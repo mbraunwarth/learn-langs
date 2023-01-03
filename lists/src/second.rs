@@ -32,8 +32,12 @@ impl<T> List<T> {
         })
     }
 
-    pub fn peek(self) -> Option<T> {
-        unimplemented!()
+    pub fn peek(&mut self) -> Option<&T> {
+        self.head.as_ref().map(|node| &node.elem)
+    }
+
+    pub fn peek_mut(&mut self) -> Option<&mut T> {
+        self.head.as_mut().map(|node| &mut node.elem)
     }
 }
 
@@ -62,5 +66,32 @@ mod test {
         list.push(1);
         assert_eq!(list.pop(), Some(1));
         assert_eq!(list.pop(), None);
+    }
+
+    #[test]
+    fn pop_a_few() {
+        let mut list = List::new();
+        list.push(3);
+        list.push(2);
+        list.push(1);
+        assert_eq!(list.pop(), Some(1));
+        assert_eq!(list.pop(), Some(2));
+        assert_eq!(list.pop(), Some(3));
+        assert_eq!(list.pop(), None);
+    }
+
+    #[test]
+    fn peek() {
+        let mut list = List::<i32>::new();
+        assert_eq!(list.peek(), None);
+        list.push(1); list.push(2); list.push(3);
+
+        assert_eq!(list.peek(), Some(&3));
+        assert_eq!(list.pop(), Some(3));
+
+        assert_eq!(list.peek_mut(), Some(&mut 2));
+
+        // test mutability
+        list.peek_mut().map(|value| *value = 42);
     }
 }
