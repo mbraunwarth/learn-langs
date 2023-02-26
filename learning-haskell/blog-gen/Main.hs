@@ -1,34 +1,44 @@
 module Main where
 
 main :: IO ()
-main = putStrLn myhtml
+main = putStrLn $ render myhtml
 
-myhtml :: String
-myhtml = 
-    makeHtml 
-        "My page title" 
-        (h1_ "Hello, World!" <> p_ "My page content")
+newtype Html = Html String
+newtype Structure = Structure String
+type Title = String
 
-makeHtml :: String -> String -> String
-makeHtml title body = html_ (head_ (title_ title) <> body_ body)
+myhtml :: Html
+myhtml =
+  html_ 
+    "My Title" 
+    ( append_ 
+      (h1_ "Heading") 
+      ( append_ 
+        (p_ "Paragraph #1") 
+        (p_ "Paragraph #2")
+      )
+    )
+
+html_ :: Title -> Structure -> Html
+html_ title (Structure content) = 
+  Html 
+    ( el "html" 
+      ( el "head" (el "title" title) 
+        <> el "body" content 
+      )
+    )
+
+p_ :: String -> Structure
+p_ = Structure . el "p"
+
+h1_ :: String -> Structure
+h1_ = Structure . el "h1"
 
 el :: String -> String -> String
 el tag content = "<" <> tag <> ">" <> content <> "</" <> tag <> ">"
 
-html_ :: String -> String
-html_ = el "html"
+render :: Html -> String
+render (Html str) = str
 
-body_ :: String -> String
-body_ content = el "body" content
-
-head_ :: String -> String
-head_ content = el "head" content
-
-title_ :: String -> String
-title_ content = el "title" content
-
-p_ :: String -> String
-p_ content = el "p" content
-
-h1_ :: String -> String
-h1_ content = el "h1" content
+append_ :: Structure -> Structure -> Structure
+append_ (Structure s1) (Structure s2) = Structure (s1 <> s2)
