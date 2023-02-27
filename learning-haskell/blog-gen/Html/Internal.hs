@@ -3,7 +3,9 @@ module Html.Internal where
 -- * Types
 
 newtype Html = Html String
-newtype Structure = Structure String
+newtype Structure = Structure 
+  { content :: String
+  }
 type Title = String
 
 -- * EDSL
@@ -23,6 +25,16 @@ p_ = Structure . el "p" . escape
 
 h1_ :: String -> Structure
 h1_ = Structure . el "h1" . escape
+
+-- TODO unordered lists, ordered lists
+ul_ :: [Structure] -> Structure
+ul_ = Structure . el "ul" . concat . map (el "li" . content)
+
+ol_ :: [Structure] -> Structure
+ol_ = Structure . el "ol" . concat . map (el "li" . content)
+
+code_ :: String -> Structure
+code_ = Structure . el "pre" . escape
 
 append_ :: Structure -> Structure -> Structure
 append_ (Structure s1) (Structure s2) = Structure (s1 <> s2)
