@@ -3,20 +3,25 @@ module Html.Internal where
 -- * Types
 
 newtype Html = Html String
+
 newtype Structure = Structure 
-  { content :: String
+  { sContent :: String
   }
+
+instance Semigroup Structure where
+  (Structure s1) <> (Structure s2) = Structure (s1 <> s2)
+
 type Title = String
 
 -- * EDSL
 
 html_ :: Title -> Structure -> Html
-html_ title (Structure content) = 
+html_ title structure = 
   let escapedTitle = escape title
   in Html 
     ( el "html" 
       ( el "head" (el "title" escapedTitle) 
-        <> el "body" content 
+        <> el "body" (sContent structure)
       )
     )
   
@@ -26,18 +31,14 @@ p_ = Structure . el "p" . escape
 h1_ :: String -> Structure
 h1_ = Structure . el "h1" . escape
 
--- TODO unordered lists, ordered lists
 ul_ :: [Structure] -> Structure
-ul_ = Structure . el "ul" . concat . map (el "li" . content)
+ul_ = Structure . el "ul" . concat . map (el "li" . sContent)
 
 ol_ :: [Structure] -> Structure
-ol_ = Structure . el "ol" . concat . map (el "li" . content)
+ol_ = Structure . el "ol" . concat . map (el "li" . sContent)
 
 code_ :: String -> Structure
 code_ = Structure . el "pre" . escape
-
-append_ :: Structure -> Structure -> Structure
-append_ (Structure s1) (Structure s2) = Structure (s1 <> s2)
 
 -- * Render
 
