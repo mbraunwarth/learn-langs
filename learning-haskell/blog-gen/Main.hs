@@ -1,6 +1,7 @@
 module Main where
 
 import Html
+import Convert
 
 main :: IO ()
 main = putStrLn $ render myhtml

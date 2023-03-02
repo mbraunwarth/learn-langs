@@ -5,13 +5,18 @@ import Numeric.Natural
 -- * Types
 
 newtype Html = Html String
+  deriving (Show)
 
 newtype Structure = Structure 
   { sContent :: String
   }
+  deriving (Show)
 
 instance Semigroup Structure where
   (Structure s1) <> (Structure s2) = Structure (s1 <> s2)
+
+instance Monoid Structure where
+  mempty = empty_
 
 type Title = String
 
@@ -59,6 +64,9 @@ ol_ = Structure . el "ol" . concat . map (el "li" . sContent)
 
 code_ :: String -> Structure
 code_ = Structure . el "pre" . escape
+
+empty_ :: Structure
+empty_ = Structure ""
 
 -- * Render
 

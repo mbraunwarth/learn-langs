@@ -14,6 +14,7 @@ module Html
   , ul_
   , ol_
   , code_
+  , empty_
   , render
   , escape
   )
