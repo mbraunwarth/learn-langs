@@ -1,3 +1,5 @@
-# Blog Generator
+# hs-blog
 
-Learning some Haskell with [this book](https://lhbg-book.link/).
+Learning Haskell by writing an adolescent blog generator.
+
+[Read the book](https://lhbg-book.link).

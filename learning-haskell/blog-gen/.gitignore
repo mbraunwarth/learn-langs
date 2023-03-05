@@ -1,3 +1,4 @@
-*.hi
-*.o
-genblog
+dist
+dist-newstyle
+.stack-work
+stack.yaml.lock
