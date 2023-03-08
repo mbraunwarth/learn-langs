@@ -1,55 +1,25 @@
-module HsBlog 
-  ( main
+-- HsBlog.hs
+module HsBlog
+  ( convertSingle
+  , convertDirectory
   , process
-  ) 
+  )
   where
 
-import qualified HsBlog.Html as Html
 import qualified HsBlog.Markup as Markup
+import qualified HsBlog.Html as Html
 import HsBlog.Convert (convert)
 
-import System.Directory (doesFileExist)
-import System.Environment (getArgs)
+import System.IO
 
-main :: IO ()
-main = do
-  args <- getArgs
-  case args of 
-    -- Reading from stdin and write to stdout
-    [] -> do 
-      contents <- getContents
-      putStrLn $ process "Empty Title" contents
+convertSingle :: Html.Title -> Handle -> Handle -> IO ()
+convertSingle title input output = do
+  content <- hGetContents input
+  hPutStrLn output (process title content)
 
-    -- Reading from input file and write result to output file
-    [inFile, outFile] -> do
-      content <- readFile inFile
-      exists <- doesFileExist outFile
-      let writeResult = writeFile outFile (process inFile content)
-      if exists 
-        then whenIO confirm writeResult 
-        else writeResult
+convertDirectory :: FilePath -> FilePath -> IO ()
+convertDirectory = error "Not implemented"
 
-    -- Unallowed argument status
-    _ -> 
-      putStrLn "Usage: runghc Main.hs [-- <input-file> <output-file>]"
-
--- | Parse a document to Markup, convert it to Html and render it to a string.
 process :: Html.Title -> String -> String
 process title = Html.render . convert title . Markup.parse
 
-confirm :: IO Bool
-confirm = do
-  putStrLn "Are you sure? (y/n)"
-  answer <- getLine
-  case answer of
-    "y" -> pure True
-    "n" -> pure False
-    _   -> do putStrLn "Please respond with 'y' or 'n'" 
-              confirm
-
-whenIO :: IO Bool -> IO () -> IO ()
-whenIO cond action = do
-  result <- cond
-  if result
-    then action
-    else pure ()
