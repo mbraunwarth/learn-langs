@@ -83,8 +83,8 @@ escape =
   let 
     escapeChar c = case c of
       '&' -> "&amp;"
-      '>' -> "&lt;"
-      '<' -> "&gt;"
+      '>' -> "&gt;"
+      '<' -> "&lt;"
       '"' -> "&quot;"
       '\'' -> "&#39;"
       _ -> [c]
