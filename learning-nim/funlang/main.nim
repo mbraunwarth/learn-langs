@@ -6,6 +6,18 @@ import token
 
 const usage = "Usage: flc FILE_NAME.fl"
 
+proc isKeyword(symbol: string): bool =
+  let keywords = @[
+    "if",
+    "else",
+    "puts",
+    "let",
+  ]
+
+  if symbol in keywords:
+    return true
+  return false
+
 type 
   Lexer = object
     source: string
@@ -62,10 +74,12 @@ proc run(l: var Lexer): seq[Token] =
       of '"':
         # StringLiteral (enclosed by quote chars)
         while l.advance():
+          # TODO if string is not terminated within the same line it has been started
+          #      => error token
           let (next, hasNext) = l.peek()
 
           if not hasNext:
-            echo "[ERROR] unterminated string literal"
+            echo "[ERROR] unterminated string literal" 
             tokens.add(Token(typ: ttError, val: "unterminated string literal"))
             break
 
@@ -80,7 +94,6 @@ proc run(l: var Lexer): seq[Token] =
         #   - BooleanLiteral (either 'true' or 'false')
         #   - Symbol (as defined by user or by compiler i.e. keyword)
         if c.isDigit():
-          echo "found digit"
           while true:
             let (next, hasNext) = l.peek()
             if not hasNext:
@@ -97,7 +110,17 @@ proc run(l: var Lexer): seq[Token] =
             if not isAlpha($next):
               break
             discard l.advance()
-          tokens.add(Token(typ: ttSymbol, val: l.source[start .. l.offset]))
+          let symbol = l.source[start .. l.offset]
+          case symbol:
+            of "true":
+              tokens.add(Token(typ: ttBoolLiteral, val: symbol))
+            of "false":
+              tokens.add(Token(typ: ttBoolLiteral, val: symbol))
+            else:
+              if symbol.isKeyword():
+                tokens.add(Token(typ: ttKeyword, val: symbol))
+              else:
+                tokens.add(Token(typ: ttSymbol, val: symbol))
         else:
           echo "found unknown"
           tokens.add(Token(typ: ttUnknown, val: l.source[start .. l.offset]))
@@ -133,3 +156,7 @@ when isMainModule:
   echo lexer
 
   echo "source length: ", len(lexer.source)
+
+# TODO add two-char stuff (i.e. ==, += etc.)
+# TODO better string literal parsing
+# TODO add line and column to token

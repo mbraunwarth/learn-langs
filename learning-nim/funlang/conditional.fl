@@ -1,0 +1,5 @@
+let mature = true
+if mature
+  puts "Drink up!"
+else
+  puts "Go home!"

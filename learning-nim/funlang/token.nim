@@ -4,6 +4,7 @@ type
     ttEqualEqual, ttGreaterEqual, ttLessEqual,
     ttLParen, ttRParen, ttLBrac, ttRBrac, ttLCurl, ttRCurl,
     ttNumberLiteral, ttBoolLiteral, ttStringLiteral, ttSymbol,
+    ttKeyword,
     ttEOF, ttError, ttUnknown
 
 type
