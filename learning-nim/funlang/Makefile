@@ -1,7 +1,5 @@
 source = main.nim
 
-all: run
-
-run:
-	nim r --verbosity=0 main.nim
+prog:
+	nim c --verbosity=0 main.nim
 

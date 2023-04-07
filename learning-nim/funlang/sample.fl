@@ -1,2 +1,2 @@
 let msg = "Hello, World!"
-puts "Hello, World!"
+puts msg

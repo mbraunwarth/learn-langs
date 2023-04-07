@@ -1,4 +1,6 @@
 import std/os
+import std/strutils
+import std/unicode
 
 import token
 
@@ -12,9 +14,10 @@ type
     column: int
 
 proc advance(l: var Lexer): bool = 
-  inc(l.offset)
-  if l.offset >= len(l.source):
+  if l.offset+1 >= len(l.source):
     return false
+  inc(l.offset)
+  inc(l.column)
   return true
 
 proc peek(l: Lexer): (char, bool) =
@@ -27,8 +30,13 @@ proc run(l: var Lexer): seq[Token] =
   var done = false
   while not done:
     let start = l.offset
-    let c = l.source[l.offset]:
+    let c = l.source[l.offset]
     case c:
+      of ' ', '\t':
+        discard
+      of '\n':
+        l.column = 0
+        inc(l.line)
       of '+':
         tokens.add(Token(typ: ttPlus, val: "+"))
       of '-':
@@ -39,16 +47,60 @@ proc run(l: var Lexer): seq[Token] =
         tokens.add(Token(typ: ttSlash, val: "/"))
       of '=':
         tokens.add(Token(typ: ttEqual, val: "="))
+      of '(':
+        tokens.add(Token(typ: ttLParen, val: "("))
+      of ')':
+        tokens.add(Token(typ: ttRParen, val: ")"))
+      of '[':
+        tokens.add(Token(typ: ttLBrac, val: "["))
+      of ']':
+        tokens.add(Token(typ: ttRBrac, val: "]"))
+      of '{':
+        tokens.add(Token(typ: ttLCurl, val: "{"))
+      of '}':
+        tokens.add(Token(typ: ttRCurl, val: "}"))
       of '"':
         # StringLiteral (enclosed by quote chars)
+        while l.advance():
+          let (next, hasNext) = l.peek()
+
+          if not hasNext:
+            echo "[ERROR] unterminated string literal"
+            tokens.add(Token(typ: ttError, val: "unterminated string literal"))
+            break
+
+          if next == '"':
+            discard l.advance()
+            break
+
+        tokens.add(Token(typ: ttStringLiteral, val: l.source[start .. l.offset]))
       else:
         # either one of: 
         #   - NumberLiteral (only containing digits)
         #   - BooleanLiteral (either 'true' or 'false')
         #   - Symbol (as defined by user or by compiler i.e. keyword)
         if c.isDigit():
-        elseif c.isAlpha():
-        tokens.add(Token(typ: ttUnknown, val: l.source[start .. l.offset]))
+          echo "found digit"
+          while true:
+            let (next, hasNext) = l.peek()
+            if not hasNext:
+              break
+            if not next.isDigit():
+              break
+            discard l.advance()
+          tokens.add(Token(typ: ttNumberLiteral, val: l.source[start .. l.offset]))
+        elif isAlpha($c):
+          while true:
+            let (next, hasNext) = l.peek()
+            if not hasNext:
+              break
+            if not isAlpha($next):
+              break
+            discard l.advance()
+          tokens.add(Token(typ: ttSymbol, val: l.source[start .. l.offset]))
+        else:
+          echo "found unknown"
+          tokens.add(Token(typ: ttUnknown, val: l.source[start .. l.offset]))
     done = not l.advance()
   tokens.add(Token(typ: ttEOF, val: "EOF"))
   return tokens
@@ -76,3 +128,8 @@ when isMainModule:
   echo "\n-Tokens----"
   for token in lexer.run():
     echo token
+
+  echo "\n-Lexer-----"
+  echo lexer
+
+  echo "source length: ", len(lexer.source)
