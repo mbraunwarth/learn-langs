@@ -44,33 +44,51 @@ proc run(l: var Lexer): seq[Token] =
     let start = l.offset
     let c = l.source[l.offset]
     case c:
-      of ' ', '\t':
+      of ' ':
+        if l.column == 1:
+          var count = 1
+          while true:
+            let (next, hasNext) = l.peek()
+            if not hasNext:
+              break
+            if next != ' ':
+              break
+
+            discard l.advance()
+            inc(count)
+
+          tokens.add(Token(typ: ttSpaceIndent, val: $count, col: l.column, line: l.line))
+        else:
+          discard
+      of '\t':
+        # throw error message: NO TABS ALLOWED!!!
         discard
       of '\n':
+        tokens.add(Token(typ: ttNewline, val: "Newline", col: l.column, line: l.line))
         l.column = 0
         inc(l.line)
       of '+':
-        tokens.add(Token(typ: ttPlus, val: "+"))
+        tokens.add(Token(typ: ttPlus, val: "+", col: l.column, line: l.line))
       of '-':
-        tokens.add(Token(typ: ttMinus, val: "-"))
+        tokens.add(Token(typ: ttMinus, val: "-", col: l.column, line: l.line))
       of '*':
-        tokens.add(Token(typ: ttStar, val: "*"))
+        tokens.add(Token(typ: ttStar, val: "*", col: l.column, line: l.line))
       of '/':
-        tokens.add(Token(typ: ttSlash, val: "/"))
+        tokens.add(Token(typ: ttSlash, val: "/", col: l.column, line: l.line))
       of '=':
-        tokens.add(Token(typ: ttEqual, val: "="))
+        tokens.add(Token(typ: ttEqual, val: "=", col: l.column, line: l.line))
       of '(':
-        tokens.add(Token(typ: ttLParen, val: "("))
+        tokens.add(Token(typ: ttLParen, val: "(", col: l.column, line: l.line))
       of ')':
-        tokens.add(Token(typ: ttRParen, val: ")"))
+        tokens.add(Token(typ: ttRParen, val: ")", col: l.column, line: l.line))
       of '[':
-        tokens.add(Token(typ: ttLBrac, val: "["))
+        tokens.add(Token(typ: ttLBrac, val: "[", col: l.column, line: l.line))
       of ']':
-        tokens.add(Token(typ: ttRBrac, val: "]"))
+        tokens.add(Token(typ: ttRBrac, val: "]", col: l.column, line: l.line))
       of '{':
-        tokens.add(Token(typ: ttLCurl, val: "{"))
+        tokens.add(Token(typ: ttLCurl, val: "{", col: l.column, line: l.line))
       of '}':
-        tokens.add(Token(typ: ttRCurl, val: "}"))
+        tokens.add(Token(typ: ttRCurl, val: "}", col: l.column, line: l.line))
       of '"':
         # StringLiteral (enclosed by quote chars)
         while l.advance():
@@ -80,14 +98,14 @@ proc run(l: var Lexer): seq[Token] =
 
           if not hasNext:
             echo "[ERROR] unterminated string literal" 
-            tokens.add(Token(typ: ttError, val: "unterminated string literal"))
+            tokens.add(Token(typ: ttError, val: "unterminated string literal", col: l.column, line: l.line))
             break
 
           if next == '"':
             discard l.advance()
             break
 
-        tokens.add(Token(typ: ttStringLiteral, val: l.source[start .. l.offset]))
+        tokens.add(Token(typ: ttStringLiteral, val: l.source[start .. l.offset], col: l.column, line: l.line))
       else:
         # either one of: 
         #   - NumberLiteral (only containing digits)
@@ -101,7 +119,7 @@ proc run(l: var Lexer): seq[Token] =
             if not next.isDigit():
               break
             discard l.advance()
-          tokens.add(Token(typ: ttNumberLiteral, val: l.source[start .. l.offset]))
+          tokens.add(Token(typ: ttNumberLiteral, val: l.source[start .. l.offset], col: l.column, line: l.line))
         elif isAlpha($c):
           while true:
             let (next, hasNext) = l.peek()
@@ -113,19 +131,19 @@ proc run(l: var Lexer): seq[Token] =
           let symbol = l.source[start .. l.offset]
           case symbol:
             of "true":
-              tokens.add(Token(typ: ttBoolLiteral, val: symbol))
+              tokens.add(Token(typ: ttBoolLiteral, val: symbol, col: l.column, line: l.line))
             of "false":
-              tokens.add(Token(typ: ttBoolLiteral, val: symbol))
+              tokens.add(Token(typ: ttBoolLiteral, val: symbol, col: l.column, line: l.line))
             else:
               if symbol.isKeyword():
-                tokens.add(Token(typ: ttKeyword, val: symbol))
+                tokens.add(Token(typ: ttKeyword, val: symbol, col: l.column, line: l.line))
               else:
-                tokens.add(Token(typ: ttSymbol, val: symbol))
+                tokens.add(Token(typ: ttSymbol, val: symbol, col: l.column, line: l.line))
         else:
           echo "found unknown"
-          tokens.add(Token(typ: ttUnknown, val: l.source[start .. l.offset]))
+          tokens.add(Token(typ: ttUnknown, val: l.source[start .. l.offset], col: l.column, line: l.line))
     done = not l.advance()
-  tokens.add(Token(typ: ttEOF, val: "EOF"))
+  tokens.add(Token(typ: ttEOF, val: "EOF", col: l.column, line: l.line))
   return tokens
 
 when isMainModule:
@@ -157,6 +175,7 @@ when isMainModule:
 
   echo "source length: ", len(lexer.source)
 
-# TODO add two-char stuff (i.e. ==, += etc.)
+# TODO add pattern matching capabilities
+# TODO add two-char stuff (i.e. -=, += etc.)
+# TODO add float support
 # TODO better string literal parsing
-# TODO add line and column to token

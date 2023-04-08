@@ -5,10 +5,11 @@ type
     ttLParen, ttRParen, ttLBrac, ttRBrac, ttLCurl, ttRCurl,
     ttNumberLiteral, ttBoolLiteral, ttStringLiteral, ttSymbol,
     ttKeyword,
-    ttEOF, ttError, ttUnknown
+    ttSpaceIndent, ttTabIndent, ttNewline, ttEOF, ttError, ttUnknown
 
 type
   Token* = object
     typ*: TokenType
     val*: string
-
+    col*: Natural
+    line*: Natural
