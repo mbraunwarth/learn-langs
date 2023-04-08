@@ -53,10 +53,8 @@ proc run(l: var Lexer): seq[Token] =
               break
             if next != ' ':
               break
-
             discard l.advance()
             inc(count)
-
           tokens.add(Token(typ: ttSpaceIndent, val: $count, col: l.column, line: l.line))
         else:
           discard
@@ -95,16 +93,13 @@ proc run(l: var Lexer): seq[Token] =
           # TODO if string is not terminated within the same line it has been started
           #      => error token
           let (next, hasNext) = l.peek()
-
           if not hasNext:
             echo "[ERROR] unterminated string literal" 
             tokens.add(Token(typ: ttError, val: "unterminated string literal", col: l.column, line: l.line))
             break
-
           if next == '"':
             discard l.advance()
             break
-
         tokens.add(Token(typ: ttStringLiteral, val: l.source[start .. l.offset], col: l.column, line: l.line))
       else:
         # either one of: 
@@ -175,6 +170,7 @@ when isMainModule:
 
   echo "source length: ", len(lexer.source)
 
+# TODO fix column counting in lexer, tokens got referenced by their end not their start
 # TODO add pattern matching capabilities
 # TODO add two-char stuff (i.e. -=, += etc.)
 # TODO add float support
