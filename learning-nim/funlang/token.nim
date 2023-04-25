@@ -2,7 +2,10 @@ type
   TokenType* = enum
     ttPlus, ttMinus, ttStar, ttSlash, ttEqual, ttGreater, ttLess,
     ttEqualEqual, ttGreaterEqual, ttLessEqual,
-    ttEOF, ttUnknown
+    ttLParen, ttRParen, ttLBrac, ttRBrac, ttLCurl, ttRCurl,
+    ttNumberLiteral, ttBoolLiteral, ttStringLiteral, ttSymbol,
+    ttKeyword,
+    ttEOF, ttError, ttUnknown
 
 type
   Token* = object
