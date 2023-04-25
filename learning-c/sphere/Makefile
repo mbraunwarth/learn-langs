@@ -1,9 +1,13 @@
+OUT=sphere
+CC=gcc
+FLAGS=-Wall -Wpedantic
+
 PHONY: run
 run: build
-	@./main
+	@./$(OUT)
 
 build: main.c
-	@gcc -o main main.c
+	@$(CC) $(FLAGS) -o $(OUT) main.c
 
 clean:
-	@rm main
+	@rm $(OUT)
