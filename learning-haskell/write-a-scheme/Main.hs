@@ -1,6 +1,7 @@
 module Main where
 
 import Text.ParserCombinators.Parsec hiding (spaces)
+import Control.Monad (liftM)
 import System.Environment
 
 data LispVal = Atom String
@@ -17,6 +18,16 @@ symbols = oneOf "!#$%&|*+-/:<=>?@^_~"
 spaces :: Parser ()
 spaces = skipMany1 space
 
+parseAtom :: Parser LispVal
+parseAtom = do
+  first <- letter <|> symbols
+  rest <- many (letter <|> symbols <|> digit)
+  let atom = first : rest
+  return $ case atom of
+    "#f" -> Bool False
+    "#t" -> Bool True
+    _    -> Atom atom
+
 parseString :: Parser LispVal
 parseString = do
   char '"'
@@ -24,9 +35,17 @@ parseString = do
   char '"'
   return $ String str
 
+parseNumber :: Parser LispVal
+parseNumber = liftM (Number . read) $ many1 digit
+
+parseExpr :: Parser LispVal
+parseExpr = parseAtom
+         <|> parseString
+         <|> parseNumber
+
 readExpr :: String -> String
 readExpr input = 
-  case parse (spaces >> symbols) "(lisp)" input of
+  case parse (parseExpr) "(lisp)" input of
     Left err -> show err
     Right sym -> "Successfully parsed " <> show sym
 
